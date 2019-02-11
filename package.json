@@ -1,12 +1,19 @@
 {
   "name": "export-appsync",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Export AWS Appsync resolvers to vtl files",
   "main": "cli.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Aravind VS",
+  "author": {
+    "name": "Aravind VS",
+    "email": "mail@aravindvs.com",
+    "url": "http://aravindvs.com"
+  },
+  "bugs": {
+    "url": "https://github.com/vsaravind007/export-appsync/issues"
+  },
   "license": "MIT",
   "dependencies": {
     "async": "^2.6.1",
@@ -15,5 +22,10 @@
   },
   "bin": {
     "export-appsync": "./cli.js"
+  },
+  "homepage": "https://github.com/vsaravind007/export-appsync",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/vsaravind007/export-appsync.git"
   }
 }

@@ -1,0 +1,19 @@
+{
+  "name": "export-appsync",
+  "version": "0.0.1",
+  "description": "Export AWS Appsync resolvers to vtl files",
+  "main": "cli.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Aravind VS",
+  "license": "MIT",
+  "dependencies": {
+    "async": "^2.6.1",
+    "aws-sdk": "^2.398.0",
+    "commander": "^2.19.0"
+  },
+  "bin": {
+    "export-appsync": "./cli.js"
+  }
+}

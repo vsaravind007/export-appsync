@@ -92,10 +92,10 @@ program
             return new Promise(function(resolve, reject) {
                 async.series([
                         function writeRequestMapper(callback) {
-                            if (!fs.existsSync(`${OUTPUT_DIR}/${typeName}`)) {
-                                fs.mkdir(`${OUTPUT_DIR}/${typeName}`, { recursive: true }, (err) => {
+                            if (!fs.existsSync(`${OUTPUT_DIR}`)) {
+                                fs.mkdir(`${OUTPUT_DIR}`, { recursive: true }, (err) => {
                                     if (err) throw err;
-                                    fs.writeFile(`${OUTPUT_DIR}/${typeName}/${resolver.fieldName}-request-mapping-template.vtl`, resolver.requestMappingTemplate, (err) => {
+                                    fs.writeFile(`${OUTPUT_DIR}/${typeName}.${resolver.fieldName}.req.vtl`, resolver.requestMappingTemplate, (err) => {
                                         if (!err) {
                                             console.log('Wrote request mapper for ', typeName);
                                             callback(null);
@@ -106,7 +106,7 @@ program
                                     });
                                 });
                             } else {
-                                fs.writeFile(`${OUTPUT_DIR}/${typeName}/${resolver.fieldName}-request-mapping-template.vtl`, resolver.requestMappingTemplate, (err) => {
+                                fs.writeFile(`${OUTPUT_DIR}/${typeName}.${resolver.fieldName}.req.vtl`, resolver.requestMappingTemplate, (err) => {
                                     if (!err) {
                                         console.log('Wrote request mapper for ', typeName);
                                         callback(null);
@@ -118,10 +118,10 @@ program
                             }
                         },
                         function writeResponseMapper(callback) {
-                            if (!fs.existsSync(`${OUTPUT_DIR}/${typeName}`)) {
-                                fs.mkdir(`${OUTPUT_DIR}/${typeName}`, { recursive: true }, (err) => {
+                            if (!fs.existsSync(`${OUTPUT_DIR}`)) {
+                                fs.mkdir(`${OUTPUT_DIR}`, { recursive: true }, (err) => {
                                     if (err) throw err;
-                                    fs.writeFile(`${OUTPUT_DIR}/${typeName}/${resolver.fieldName}-response-mapping-template.vtl`, resolver.responseMappingTemplate, (err) => {
+                                    fs.writeFile(`${OUTPUT_DIR}/${typeName}.${resolver.fieldName}.res.vtl`, resolver.responseMappingTemplate, (err) => {
                                         if (!err) {
                                             console.log('Wrote response mapper for ', typeName);
                                             callback(null);
@@ -132,7 +132,7 @@ program
                                     });
                                 });
                             } else {
-                                fs.writeFile(`${OUTPUT_DIR}/${typeName}/${resolver.fieldName}-response-mapping-template.vtl`, resolver.responseMappingTemplate, (err) => {
+                                fs.writeFile(`${OUTPUT_DIR}/${typeName}.${resolver.fieldName}.res.vtl`, resolver.responseMappingTemplate, (err) => {
                                     if (!err) {
                                         console.log('Wrote response mapper for ', typeName);
                                         callback(null);

@@ -69,13 +69,16 @@ program
             })
         }
 
-        function _fetchResolvers(apiId, typeName) {
+        function _fetchResolvers(apiId, typeName, nextToken) {
             return new Promise(function(resolve, reject) {
                 let params = {
                     apiId: apiId,
                     typeName: typeName,
                     maxResults: 25
                 };
+                if (nextToken) {
+                    params.nextToken = nextToken;
+                }
                 appsync.listResolvers(params, function(err, data) {
                     if (err)
                         return reject(err)
@@ -89,10 +92,10 @@ program
             return new Promise(function(resolve, reject) {
                 async.series([
                         function writeRequestMapper(callback) {
-                            if (!fs.existsSync(`${OUTPUT_DIR}/${typeName}`)) {
-                                fs.mkdir(`${OUTPUT_DIR}/${typeName}`, { recursive: true }, (err) => {
+                            if (!fs.existsSync(`${OUTPUT_DIR}`)) {
+                                fs.mkdir(`${OUTPUT_DIR}`, { recursive: true }, (err) => {
                                     if (err) throw err;
-                                    fs.writeFile(`${OUTPUT_DIR}/${typeName}/${resolver.fieldName}-request-mapping-template.vtl`, resolver.requestMappingTemplate, (err) => {
+                                    fs.writeFile(`${OUTPUT_DIR}/${typeName}.${resolver.fieldName}.req.vtl`, resolver.requestMappingTemplate, (err) => {
                                         if (!err) {
                                             console.log('Wrote request mapper for ', typeName);
                                             callback(null);
@@ -103,7 +106,7 @@ program
                                     });
                                 });
                             } else {
-                                fs.writeFile(`${OUTPUT_DIR}/${typeName}/${resolver.fieldName}-request-mapping-template.vtl`, resolver.requestMappingTemplate, (err) => {
+                                fs.writeFile(`${OUTPUT_DIR}/${typeName}.${resolver.fieldName}.req.vtl`, resolver.requestMappingTemplate, (err) => {
                                     if (!err) {
                                         console.log('Wrote request mapper for ', typeName);
                                         callback(null);
@@ -115,10 +118,10 @@ program
                             }
                         },
                         function writeResponseMapper(callback) {
-                            if (!fs.existsSync(`${OUTPUT_DIR}/${typeName}`)) {
-                                fs.mkdir(`${OUTPUT_DIR}/${typeName}`, { recursive: true }, (err) => {
+                            if (!fs.existsSync(`${OUTPUT_DIR}`)) {
+                                fs.mkdir(`${OUTPUT_DIR}`, { recursive: true }, (err) => {
                                     if (err) throw err;
-                                    fs.writeFile(`${OUTPUT_DIR}/${typeName}/${resolver.fieldName}-response-mapping-template.vtl`, resolver.responseMappingTemplate, (err) => {
+                                    fs.writeFile(`${OUTPUT_DIR}/${typeName}.${resolver.fieldName}.res.vtl`, resolver.responseMappingTemplate, (err) => {
                                         if (!err) {
                                             console.log('Wrote response mapper for ', typeName);
                                             callback(null);
@@ -129,7 +132,7 @@ program
                                     });
                                 });
                             } else {
-                                fs.writeFile(`${OUTPUT_DIR}/${typeName}/${resolver.fieldName}-response-mapping-template.vtl`, resolver.responseMappingTemplate, (err) => {
+                                fs.writeFile(`${OUTPUT_DIR}/${typeName}.${resolver.fieldName}.res.vtl`, resolver.responseMappingTemplate, (err) => {
                                     if (!err) {
                                         console.log('Wrote response mapper for ', typeName);
                                         callback(null);
@@ -142,12 +145,49 @@ program
                         }
                     ],
                     function(err, results) {
-                        if (err)
-                            return reject(err)
+                        if (err) {
+                          console.log("Error", err);
+                          return reject(err)
+                        }
                         else
                             return resolve(null)
                     });
             })
+        }
+
+        function processAllResolvers(type, nextToken, eachCallback) {
+            async.waterfall([
+                function fetchResolvers(cb) {
+                    console.log("Fetching resolvers for", type.name, nextToken);
+                    _fetchResolvers(API_ID, type.name, nextToken).then(function(data) {
+                        cb(null, data);
+                    }).catch(function(e) {
+                        cb(e);
+                    })
+                },
+                function writeResolvers(data, cb) {
+                    if (data.resolvers.length > 0) {
+                        async.each(data.resolvers, function(resolver, resolverCallback) {
+                            _writeMappingTemplates(type.name, resolver).then(function() {
+                                resolverCallback(null, data)
+                            }).catch(function(err) {
+                              console.log("Err", err);
+                                resolverCallback(err, data)
+                            })
+                        }, function(err) {
+                            cb(null, data)
+                        })
+                    } else {
+                        console.log('No resolvers for ', type.name)
+                        cb(null, 'NO_RESOLVER');
+                    }
+                }
+            ], function(err, data) {
+                if (data != 'NO_RESOLVER' && data.nextToken != null && data.nextToken != undefined) {
+                    processAllResolvers(type, data.nextToken, eachCallback);
+                } else
+                    eachCallback(err, null)
+            });
         }
 
         function ProcessAPI(params, callback) {
@@ -155,34 +195,9 @@ program
                 if (err)
                     return callback(err)
                 async.each(data.types, function(type, eachCallback) {
-                    async.waterfall([
-                        function fetchResolvers(cb) {
-                            _fetchResolvers(API_ID, type.name).then(function(data) {
-                                cb(null, data);
-                            }).catch(function(e) {
-                                cb(e);
-                            })
-                        },
-                        function writeResolvers(data, cb) {
-                            if (data.resolvers.length > 0) {
-                                async.each(data.resolvers, function(resolver, resolverCallback) {
-                                    _writeMappingTemplates(type.name, resolver).then(function() {
-                                        resolverCallback(null)
-                                    }).catch(function(err) {
-                                        resolverCallback(err)
-                                    })
-                                }, function(err, done) {
-                                    cb(null)
-                                })
-                            } else {
-                                console.log('No resolvers for ', type.name)
-                                cb(null, 'NO_RESOLVER');
-                            }
-                        }
-                    ], function(err, done) {
-                        eachCallback(err, done)
-                    });
-                }, function(err, done) {
+                      processAllResolvers(type, null, eachCallback);
+                  }
+                  , function(err, done) {
                     if (data.nextToken != null || data.nextToken != undefined) {
                         params.nextToken = data.nextToken;
                         ProcessAPI(params, callback)

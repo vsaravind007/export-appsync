@@ -1,12 +1,5 @@
 image: abstruse_builder
 
-matrix:
-  - env: SCRIPT=lint NODE_VERSION=10
-  - env: SCRIPT=test NODE_VERSION=10
-  - env: SCRIPT=test:e2e NODE_VERSION=10
-  - env: SCRIPT=test:protractor NODE_VERSION=10
-  - env: SCRIPT=test:karma NODE_VERSION=10
-
 before_install:
   - npm config set spin false
   - npm config set progress false

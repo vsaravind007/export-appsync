@@ -1,6 +1,6 @@
 {
   "name": "export-appsync",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "description": "Export AWS Appsync resolvers to vtl files",
   "main": "cli.js",
   "scripts": {

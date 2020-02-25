@@ -1,4 +1,4 @@
-image: abstruse
+image: abstruse_builder
 
 matrix:
   - env: SCRIPT=lint NODE_VERSION=10
